@@ -42,7 +42,7 @@ def save_data(data_frame):
 
 #errorhandling for writing in csv safely
     try:
-        data_frame.to_csv(DATA, index = False) #Doesn't save the index column in csv (index= False)
+        data_frame.to_csv(DATA, index=False) #Doesn't save the index column in csv (index= False)
         logging.info("Data successfully persisted to CSV.")
         return True #Succesfully saved the file
     
@@ -185,7 +185,8 @@ def search_characters():
 @app.route('/characters/<int:id>',methods=['PUT'])
 def update_character(id):
     global df
-    data = request.request.get_json(silent = True) # Get JSON data from request body
+    df = load_data()
+    data = request.get_json(silent = True) # Get JSON data from request body
     
     # Validate the JSON body
     if not data:
@@ -193,7 +194,7 @@ def update_character(id):
         return jsonify({"error": "Bad Request", "message": "Request body must be valid JSON."}), 400
     
     #Find the index with given character with the given ID
-    index = df[df['id'] == id].index
+    index = df[df['id'].astype(int) == id].index
     
     
     # If no record found, return 404 Not Found
@@ -239,9 +240,9 @@ def update_character(id):
 @app.route('/characters/<int:id>', methods=['DELETE'])
 def delete_character(id):
        global df
-       
+       df =  load_data()
          # Find the record by ID
-       index = df[df['id'] == id].index
+       index = df[df['id'].astype(int) == id].index
        
         # If no record found, return 404
        if index.empty:
@@ -263,7 +264,7 @@ def delete_character(id):
            return '', 204
        
        except Exception as e:
-              # Handle unexpected deletion errors
+        # Handle unexpected deletion errors
         logging.error(f"Unhandled error during DELETE for ID {id}: {e}")
         return jsonify({"error": "Internal Server Error", "message": "An unexpected server error occurred during deletion."}), 500
     
@@ -274,5 +275,5 @@ if __name__ == '__main__':
       if df.empty and os.path.exists(DATA):
         logging.critical("App starting with empty data; check CSV format.")
         
-       # Run Flask in debug mode   
+       # Run Flask in debug mode 
       app.run(debug=True)
